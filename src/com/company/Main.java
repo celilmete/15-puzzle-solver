@@ -1,6 +1,7 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.PriorityQueue;
 
 public class Main {
@@ -25,6 +26,12 @@ public class Main {
         PriorityQueue<GraphNode> frontier = new PriorityQueue<GraphNode>(); // explored set i array list
         ArrayList<GraphNode> exploredSet = new ArrayList<GraphNode>(); //  olarak oluşturdum
 
+        int[][] deneme = copy(GOAL_STATE);
+        printPuzzle(deneme);
+        move("dl", deneme);
+        printPuzzle(deneme);
+
+
 
 
 
@@ -32,12 +39,12 @@ public class Main {
     }
 
     // Bütün algoritmalar için kullanacağımız search fonksiyonu
-    public void graphSearch() { // implement edilecek
+    public static void graphSearch() { // implement edilecek
 
     }
 
-    // puzlle daki boş taşı hareket ettirmek için fonksiyon
-    public int[][] move(String direction, int[][] puzzle) { //implement edilecek
+    // puzlle daki boş taşı hareket ettirmek için fonksiyon , yönleri u,d,r,l,ur,ul,dr,dl olarak verilecek
+    public static void move(String direction, int[][] puzzle) {
         int blank_tile_x = -1;
         int blank_tile_y =  -1;
 
@@ -50,32 +57,82 @@ public class Main {
             }
         }
 
-        if (direction.equals("up") && (blank_tile_x - 1) >= 0 ) {
-
+        if (direction.equals("u") && blank_tile_x - 1 >= 0 ) { // boş taşı yukarı kaydır
+            puzzle[blank_tile_x][blank_tile_y] = puzzle[blank_tile_x-1][blank_tile_y];
+            puzzle[blank_tile_x-1][blank_tile_y] = 0;
         }
+        else if (direction.equals("d") && blank_tile_x + 1 < PUZZLE_SIZE) { // boş taşı aşağı kaydır
+            puzzle[blank_tile_x][blank_tile_y] = puzzle[blank_tile_x+1][blank_tile_y];
+            puzzle[blank_tile_x+1][blank_tile_y] = 0;
+        }
+        else if (direction.equals("r") && blank_tile_y + 1 < PUZZLE_SIZE) { // boş taşı sağa kaydır
+            puzzle[blank_tile_x][blank_tile_y] = puzzle[blank_tile_x][blank_tile_y+1];
+            puzzle[blank_tile_x][blank_tile_y+1] = 0;
+        }
+        else if (direction.equals("l") && blank_tile_y - 1 >= 0) { // boş taşı sola kaydır
+            puzzle[blank_tile_x][blank_tile_y] = puzzle[blank_tile_x][blank_tile_y-1];
+            puzzle[blank_tile_x][blank_tile_y-1] = 0;
+        }
+        else if (direction.equals("ur") && blank_tile_x - 1 >= 0 && blank_tile_y + 1 < PUZZLE_SIZE) { // boş taşı sağ yukarı çapraz kaydır
+            puzzle[blank_tile_x][blank_tile_y] = puzzle[blank_tile_x-1][blank_tile_y+1];
+            puzzle[blank_tile_x-1][blank_tile_y+1] = 0;
+        }
+        else if (direction.equals("ul") && blank_tile_x - 1 >= 0 && blank_tile_y - 1 >= 0) { // boş taşı sol yukarı çapraz kaydır
+            puzzle[blank_tile_x][blank_tile_y] = puzzle[blank_tile_x-1][blank_tile_y-1];
+            puzzle[blank_tile_x-1][blank_tile_y-1] = 0;
+        }
+        else if (direction.equals("dr") && blank_tile_x + 1 < PUZZLE_SIZE && blank_tile_y + 1 < PUZZLE_SIZE) { // boş taşı sağ aşağı çapraz kaydır
+            puzzle[blank_tile_x][blank_tile_y] = puzzle[blank_tile_x+1][blank_tile_y+1];
+            puzzle[blank_tile_x+1][blank_tile_y+1] = 0;
+        }
+        else if (direction.equals("dl") && blank_tile_x + 1 < PUZZLE_SIZE && blank_tile_y - 1 >= 0) { // boş taşı sol aşağı çapraz kaydır
+            puzzle[blank_tile_x][blank_tile_y] = puzzle[blank_tile_x+1][blank_tile_y-1];
+            puzzle[blank_tile_x+1][blank_tile_y-1] = 0;
+        }
+        else System.err.println("can not move tile that direction"); // boş taş hareket edemiyorsa hata yazdır
 
-        return null;
     }
 
     // bütün algoritmalar için çalışaşacak expand fonksiyonu
-    public void expand() { // implement edilecek
+    public static void expand() { // implement edilecek
 
     }
 
     // bu fonksiyon verilen state i yazdıracak
-    public void printState(State state) { // implement edilecek
+    public static void printState(State state) { // implement edilecek
 
     }
 
+    // int array  alır puzzle ekrana bastırır
+    public static void printPuzzle(int[][] puzzle) {
+        for (int i = 0; i < PUZZLE_SIZE; i++) {
+            for (int j = 0; j < PUZZLE_SIZE; j++) {
+                System.out.print(puzzle[i][j] + "\t");
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
+    // puzzle kopyalamak için fonksiyon
+    public static int[][] copy(int[][] puzzle) {
+        int[][] copy = new int[PUZZLE_SIZE][];
+        for (int i = 0; i < PUZZLE_SIZE; i++) {
+            copy[i] = puzzle[i].clone();
+        }
+        return copy;
+    }
+
     // iki state puzzle karşılaştıracak
-    public boolean isEqual() { // implement edilecek
+    public static boolean isEqual() { // implement edilecek
 
         return false;
     }
 
     // bu graph implement etmek için node
-    public class GraphNode  implements Comparable{
+    public static class GraphNode  implements Comparable{ // implementasyonu bitmedi
 
+        GraphNode parent; // her node kendi parent ını tutacak
         int cost; // node un cost u, algoritmaya göre belirlenecek
 
         public GraphNode() {
@@ -85,12 +142,12 @@ public class Main {
 
         @Override
         public int compareTo(Object o) {
-            if (((GraphNode)o).cost > this.cost)
+            return Integer.compare(this.cost, ((GraphNode) o).cost);
         }
     }
 
     // graph da her node da state leri ifade etmek için kullanılacak class
-    private class State {
+    private static class State {
 
 
         private int g_n; // uniform cost search için g(n) değeri, şimdiye kadar yapılan toplam cost
