@@ -1,16 +1,14 @@
 package com.company;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class Main {
 
     // kullanılacak algoritmalar
-    private static final int UCS = 1; // uniform cost search
-    private static final int H_1 = 2; // A* with heuristic h_1
-    private static final int H_3 = 4; // A* with heuristic h_2
-    private static final int H_2 = 3; // A* with heuristic h_3
+    private static final int UCS = 0; // uniform cost search
+    private static final int H_1 = 1; // A* with heuristic h_1
+    private static final int H_2 = 2; // A* with heuristic h_2
+    private static final int H_3 = 3; // A* with heuristic h_3
     private static final int PUZZLE_SIZE = 4; // puzzle boyutu
 
     private static final int[][] GOAL_STATE = {
@@ -20,23 +18,52 @@ public class Main {
             {10, 9, 8, 7}
     };
 
+    //frontier i priority que olarak oluşturdum
+    static PriorityQueue<GraphNode> frontier = new PriorityQueue<GraphNode>(Comparator.comparing(GraphNode::getCost)); // explored set i array list
+    static ArrayList<GraphNode> exploredSet = new ArrayList<GraphNode>(); //  olarak oluşturdum
+
     public static void main(String[] args) {
+        //
+        int[][] puzzle = {
+                {1,2,3,4},
+                {12,13,0,5},
+                {11,15,14,6},
+                {10,9,8,7}};
+        State state = new State(puzzle,0,UCS);
+        GraphNode start = new GraphNode(null,state,state.g_n);
 
-        //frontier i priority que olarak oluşturdum
-        PriorityQueue<GraphNode> frontier = new PriorityQueue<GraphNode>(); // explored set i array list
-        ArrayList<GraphNode> exploredSet = new ArrayList<GraphNode>(); //  olarak oluşturdum
 
-        int[][] deneme = copy(GOAL_STATE);
-        printPuzzle(deneme);
-        move("dl", deneme);
-        printPuzzle(deneme);
-
+        start = graphSearch(start,UCS);
+        if(start != null) {
+            while (start.parent != null) {
+                printNode(start);
+                start = start.parent;
+            }
+        }
 
     }
 
-    // Bütün algoritmalar için kullanacağımız search fonksiyonu
-    public static void graphSearch() { // implement edilecek
+    public static int[][] puzzleGenerator(int depth){// implement edilecek
 
+        return null;
+    }
+
+    // Bütün algoritmalar için kullanacağımız search fonksiyonu
+    public static GraphNode graphSearch(GraphNode startNode, int algorithm) { // implement edilecek
+        if(isEqual(startNode.state.puzzle,GOAL_STATE))
+            return startNode;
+        expand(startNode,algorithm);
+        GraphNode node;
+        while (frontier.peek() != null) {
+            node = frontier.poll();
+            if(isEqual(GOAL_STATE,node.state.puzzle))
+                return node;
+            else {
+                System.out.println(".");
+                expand(node,algorithm);
+            }
+        }
+        return null;
     }
 
     // puzlle daki boş taşı hareket ettirmek için fonksiyon , yönleri u,d,r,l,ur,ul,dr,dl olarak verilecek
@@ -52,7 +79,7 @@ public class Main {
                 }
             }
         }
-
+        // bu fonksiyon eğer verilen hareketi yapabiliyorsa yapıp true yoksa false döndürüyor
         if (direction.equals("u") && blank_tile_x - 1 >= 0) { // boş taşı yukarı kaydır
             puzzle[blank_tile_x][blank_tile_y] = puzzle[blank_tile_x - 1][blank_tile_y];
             puzzle[blank_tile_x - 1][blank_tile_y] = 0;
@@ -83,8 +110,9 @@ public class Main {
     }
 
     // bütün algoritmalar için çalışaşacak expand fonksiyonu
-    public static void expand(GraphNode node, int algorithm, PriorityQueue<GraphNode> frontier) { // implement devam ediyor
-        int[][] parentPuzzle = node.state.getPuzzle();
+    public static void expand(GraphNode node, int algorithm) { // implement devam ediyor
+        exploredSet.add(node);
+        int[][] parentPuzzle = node.state.puzzle;
         int blank_tile_x = -1;
         int blank_tile_y = -1;
 
@@ -100,51 +128,59 @@ public class Main {
             case UCS -> {
                 int[][] puzzle = copy(parentPuzzle);
                 if (move("u", puzzle)) { // boş taşı yukarı kaydır
-                    State state = new State(puzzle, 1, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, node.getState().getG_n() + 1);
-                    frontier.add(graphNode);
+                    State state = new State(puzzle, node.state.g_n + 1, algorithm);
+                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
+                    if(!isInExploredSet(graphNode))
+                        frontier.add(graphNode);
                 }
                 puzzle = copy(parentPuzzle);
                 if (move("d", puzzle)) { // boş taşı aşağı kaydır
-                    State state = new State(puzzle, 1, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, node.getState().getG_n() + 1);
-                    frontier.add(graphNode);
+                    State state = new State(puzzle, node.state.g_n + 1, algorithm);
+                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
+                    if(!isInExploredSet(graphNode))
+                        frontier.add(graphNode);
                 }
                 puzzle = copy(parentPuzzle);
                 if (move("r", puzzle)) { // boş taşı sağa kaydır
-                    State state = new State(puzzle, 1, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, node.getState().getG_n() + 1);
-                    frontier.add(graphNode);
+                    State state = new State(puzzle, node.state.g_n + 1, algorithm);
+                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
+                    if(!isInExploredSet(graphNode))
+                        frontier.add(graphNode);
                 }
                 puzzle = copy(parentPuzzle);
                 if (move("l", puzzle)) { // boş taşı sola kaydır
-                    State state = new State(puzzle, 1, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, node.getState().getG_n() + 1);
-                    frontier.add(graphNode);
+                    State state = new State(puzzle, node.state.g_n + 1, algorithm);
+                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
+                    if(!isInExploredSet(graphNode))
+                        frontier.add(graphNode);
                 }
                 puzzle = copy(parentPuzzle);
                 if (move("ur", puzzle)) { // boş taşı sağ yukarı çapraz kaydır
-                    State state = new State(puzzle, 3, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, node.getState().getG_n() + 1);
-                    frontier.add(graphNode);
+                    State state = new State(puzzle, node.state.g_n + 3, algorithm);
+                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
+                    if(!isInExploredSet(graphNode))
+                        frontier.add(graphNode);
                 }
                 puzzle = copy(parentPuzzle);
                 if (move("ul", puzzle)) { // boş taşı sol yukarı çapraz kaydır
-                    State state = new State(puzzle, 3, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, node.getState().getG_n() + 1);
-                    frontier.add(graphNode);
+                    State state = new State(puzzle, node.state.g_n + 3, algorithm);
+                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
+                    if(!isInExploredSet(graphNode))
+                        frontier.add(graphNode);
                 }
                 puzzle = copy(parentPuzzle);
                 if (move("dr", puzzle)) { // boş taşı sağ aşağı çapraz kaydır
-                    State state = new State(puzzle, 3, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, node.getState().getG_n() + 1);
-                    frontier.add(graphNode);
+                    State state = new State(puzzle, node.state.g_n + 3, algorithm);
+                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
+                    if(!isInExploredSet(graphNode))
+                        frontier.add(graphNode);
                 }
                 puzzle = copy(parentPuzzle);
                 if (move("dl", puzzle)) { // boş taşı sol aşağı çapraz kaydır
-                    State state = new State(puzzle, 3, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, node.getState().getG_n() + 1);
-                    frontier.add(graphNode);
+                    State state = new State(puzzle, node.state.g_n + 3, algorithm);
+                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
+                    if(!isInExploredSet(graphNode))
+                        frontier.add(graphNode);
                 }
             }
             case H_1 -> System.out.println("not yet");
@@ -155,8 +191,21 @@ public class Main {
     }
 
     // bu fonksiyon verilen state i yazdıracak
-    public static void printState(State state) { // implement edilecek
+    public static void printNode(GraphNode node) { // implement edilecek
+        System.out.println("Cost is: " + node.cost);
+        printPuzzle(node.state.puzzle);
+        System.out.println("");
+    }
 
+    // Bir node explored sette var mı yok mu kontrol eden fonksiyon yok is false dönüyor
+    public static boolean isInExploredSet(GraphNode node) {
+
+        for (GraphNode item:exploredSet) {
+            if(isEqual(item,node))
+                return true;
+        }
+
+        return false;
     }
 
     // int array  alır puzzle ekrana bastırır
@@ -180,10 +229,12 @@ public class Main {
     }
 
     // iki state eşit mi değil mi karşılaştıracak
-    public static boolean isEqual(State state1, State state2) {
-        int[][] first = state1.getPuzzle();
-        int[][] second = state2.getPuzzle();
+    public static boolean isEqual(GraphNode node1, GraphNode node2) {
+        return isEqual(node1.state.puzzle,node2.state.puzzle);
+    }
 
+    // iki puzzle eşit mi onu kontrol eder
+    public static boolean isEqual(int[][] first, int[][] second) {
         for (int i = 0; i < PUZZLE_SIZE; i++) {
             for (int j = 0; j < PUZZLE_SIZE; j++) {
                 if (first[i][j] != second[i][j])
@@ -211,8 +262,8 @@ public class Main {
             this.cost = cost;
         }
 
-        public State getState() {
-            return state;
+        public int getCost() {
+            return cost;
         }
 
         @Override
@@ -250,46 +301,6 @@ public class Main {
                     h2_n = value;
                     break;
             }
-        }
-
-        public void setG_n(int g_n) {
-            this.g_n = g_n;
-        }
-
-        public void setH1_n(int h1_n) {
-            this.h1_n = h1_n;
-        }
-
-        public void setH2_n(int h2_n) {
-            this.h2_n = h2_n;
-        }
-
-        public void setH3_n(int h3_n) {
-            this.h3_n = h3_n;
-        }
-
-        public void setPuzzle(int[][] puzzle) {
-            this.puzzle = puzzle;
-        }
-
-        public int getG_n() {
-            return g_n;
-        }
-
-        public int getH1_n() {
-            return h1_n;
-        }
-
-        public int getH2_n() {
-            return h2_n;
-        }
-
-        public int getH3_n() {
-            return h3_n;
-        }
-
-        public int[][] getPuzzle() {
-            return puzzle;
         }
 
     }
