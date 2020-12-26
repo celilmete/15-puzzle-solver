@@ -23,29 +23,76 @@ public class Main {
     static ArrayList<GraphNode> exploredSet = new ArrayList<GraphNode>(); //  olarak oluşturdum
 
     public static void main(String[] args) {
-        //
-        int[][] puzzle = {
-                {1,2,3,4},
-                {12,13,0,5},
-                {11,15,14,6},
-                {10,9,8,7}};
-        State state = new State(puzzle,0,UCS);
-        GraphNode start = new GraphNode(null,state,state.g_n);
 
+        GraphNode start = puzzleGenerator(6);
+        double startTime = System.currentTimeMillis();
+        start = graphSearch(start,H_2);
+        double endTime = System.currentTimeMillis();
+        System.out.println("Time taken: "+(endTime-startTime)+"ms");
 
-        start = graphSearch(start,UCS);
         if(start != null) {
-            while (start.parent != null) {
+            while (start != null) {
                 printNode(start);
                 start = start.parent;
             }
         }
+        System.out.println("Time taken: "+(endTime-startTime)+"ms");
 
     }
 
-    public static int[][] puzzleGenerator(int depth){// implement edilecek
-
-        return null;
+    // goal state den verilen derinlikte puzzle üretir ve Graphnode döndürür
+    public static GraphNode puzzleGenerator(int depth){
+        // 0 ile 7 arasında rastgele sayı üreticez sayılar hareketleri temsil edicek
+        //7dençıkarına hamlenin tersini buluyoruz  0-u, 7-d, 1-l, 6-r, 2-ur, 5-dl, 3-ul, 4-dr
+        // bu şekile verilen depth kadar random hareket ettirmiş olacagız boş taşı
+        // ve istenilen depth-derinlikte bir puzzle elde etmiş olacagız
+        int[][] puzzle = copy(GOAL_STATE);
+        Random random =  new Random();
+        int number, last;
+        last = 9;
+        int i = 0;
+        while (i < depth){
+            number = random.nextInt(8);
+            if (last == 7 - number) // son hareketin tersini yapma
+                continue;
+            switch (number) {
+                case 0 -> {
+                    if (move("u", puzzle))
+                        i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                }
+                case 1 -> {
+                    if (move("l", puzzle))
+                        i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                }
+                case 2 -> {
+                    if (move("ur", puzzle))
+                        i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                }
+                case 3 -> {
+                    if (move("ul", puzzle))
+                        i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                }
+                case 4 -> {
+                    if (move("dr", puzzle))
+                        i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                }
+                case 5 -> {
+                    if (move("dl", puzzle))
+                        i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                }
+                case 6 -> {
+                    if (move("r", puzzle))
+                        i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                }
+                case 7 -> {
+                    if (move("d", puzzle))
+                        i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                }
+            }
+            last = number;
+        }
+        State state = new State(puzzle,0);
+        return new GraphNode(null,state,state.g_n);
     }
 
     // Bütün algoritmalar için kullanacağımız search fonksiyonu
@@ -124,68 +171,103 @@ public class Main {
                 }
             }
         }
-        switch (algorithm) {// her bir hareket için yeni bir node oluşturup frontiere ekliyoruz
-            case UCS -> {
-                int[][] puzzle = copy(parentPuzzle);
-                if (move("u", puzzle)) { // boş taşı yukarı kaydır
-                    State state = new State(puzzle, node.state.g_n + 1, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
-                    if(!isInExploredSet(graphNode))
-                        frontier.add(graphNode);
-                }
-                puzzle = copy(parentPuzzle);
-                if (move("d", puzzle)) { // boş taşı aşağı kaydır
-                    State state = new State(puzzle, node.state.g_n + 1, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
-                    if(!isInExploredSet(graphNode))
-                        frontier.add(graphNode);
-                }
-                puzzle = copy(parentPuzzle);
-                if (move("r", puzzle)) { // boş taşı sağa kaydır
-                    State state = new State(puzzle, node.state.g_n + 1, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
-                    if(!isInExploredSet(graphNode))
-                        frontier.add(graphNode);
-                }
-                puzzle = copy(parentPuzzle);
-                if (move("l", puzzle)) { // boş taşı sola kaydır
-                    State state = new State(puzzle, node.state.g_n + 1, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
-                    if(!isInExploredSet(graphNode))
-                        frontier.add(graphNode);
-                }
-                puzzle = copy(parentPuzzle);
-                if (move("ur", puzzle)) { // boş taşı sağ yukarı çapraz kaydır
-                    State state = new State(puzzle, node.state.g_n + 3, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
-                    if(!isInExploredSet(graphNode))
-                        frontier.add(graphNode);
-                }
-                puzzle = copy(parentPuzzle);
-                if (move("ul", puzzle)) { // boş taşı sol yukarı çapraz kaydır
-                    State state = new State(puzzle, node.state.g_n + 3, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
-                    if(!isInExploredSet(graphNode))
-                        frontier.add(graphNode);
-                }
-                puzzle = copy(parentPuzzle);
-                if (move("dr", puzzle)) { // boş taşı sağ aşağı çapraz kaydır
-                    State state = new State(puzzle, node.state.g_n + 3, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
-                    if(!isInExploredSet(graphNode))
-                        frontier.add(graphNode);
-                }
-                puzzle = copy(parentPuzzle);
-                if (move("dl", puzzle)) { // boş taşı sol aşağı çapraz kaydır
-                    State state = new State(puzzle, node.state.g_n + 3, algorithm);
-                    GraphNode graphNode = new GraphNode(node, state, state.g_n);
-                    if(!isInExploredSet(graphNode))
-                        frontier.add(graphNode);
-                }
+
+        // boş taşın yer bulundu artık mümkün olan hereketler için node oluşturuyoruz
+        int[][] puzzle = copy(parentPuzzle);
+        if (move("u", puzzle)) { // boş taşı yukarı kaydır
+            State state = new State(puzzle, node.state.g_n + 1);
+            GraphNode graphNode = null;
+            switch (algorithm) {
+                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
+                case H_1: break;
+                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
             }
-            case H_1 -> System.out.println("not yet");
-            case H_2 -> System.out.println("not yet");
-            case H_3 -> System.out.println("not yet");
+            if(!isInExploredSet(graphNode))
+                frontier.add(graphNode);
+        }
+        puzzle = copy(parentPuzzle);
+        if (move("d", puzzle)) { // boş taşı aşağı kaydır
+            State state = new State(puzzle, node.state.g_n + 1);
+            GraphNode graphNode = null;
+            switch (algorithm) {
+                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
+                case H_1: break;
+                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
+            }
+            if(!isInExploredSet(graphNode))
+                frontier.add(graphNode);
+        }
+        puzzle = copy(parentPuzzle);
+        if (move("r", puzzle)) { // boş taşı sağa kaydır
+            State state = new State(puzzle, node.state.g_n + 1);
+            GraphNode graphNode = null;
+            switch (algorithm) {
+                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
+                case H_1: break;
+                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
+            }
+            if(!isInExploredSet(graphNode))
+                frontier.add(graphNode);
+        }
+        puzzle = copy(parentPuzzle);
+        if (move("l", puzzle)) { // boş taşı sola kaydır
+            State state = new State(puzzle, node.state.g_n + 1);
+            GraphNode graphNode = null;
+            switch (algorithm) {
+                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
+                case H_1: break;
+                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
+            }
+            if(!isInExploredSet(graphNode))
+                frontier.add(graphNode);
+        }
+        puzzle = copy(parentPuzzle);
+        if (move("ur", puzzle)) { // boş taşı sağ yukarı çapraz kaydır
+            State state = new State(puzzle, node.state.g_n + 3);
+            GraphNode graphNode = null;
+            switch (algorithm) {
+                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
+                case H_1: break;
+                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
+            }
+            if(!isInExploredSet(graphNode))
+                frontier.add(graphNode);
+        }
+        puzzle = copy(parentPuzzle);
+        if (move("ul", puzzle)) { // boş taşı sol yukarı çapraz kaydır
+            State state = new State(puzzle, node.state.g_n + 3);
+            GraphNode graphNode = null;
+            switch (algorithm) {
+                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
+                case H_1: break;
+                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
+            }
+            if(!isInExploredSet(graphNode))
+                frontier.add(graphNode);
+        }
+        puzzle = copy(parentPuzzle);
+        if (move("dr", puzzle)) { // boş taşı sağ aşağı çapraz kaydır
+            State state = new State(puzzle, node.state.g_n + 3);
+            GraphNode graphNode = null;
+            switch (algorithm) {
+                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
+                case H_1: break;
+                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
+            }
+            if(!isInExploredSet(graphNode))
+                frontier.add(graphNode);
+        }
+        puzzle = copy(parentPuzzle);
+        if (move("dl", puzzle)) { // boş taşı sol aşağı çapraz kaydır
+            State state = new State(puzzle, node.state.g_n + 3);
+            GraphNode graphNode = null;
+            switch (algorithm) {
+                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
+                case H_1: break;
+                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
+            }
+            if(!isInExploredSet(graphNode))
+                frontier.add(graphNode);
         }
 
     }
@@ -277,8 +359,6 @@ public class Main {
 
 
         private int g_n; // uniform cost search için g(n) değeri, şimdiye kadar yapılan toplam cost
-        private int h1_n; // A* heuristic, yanlış dizilmiş taşların sayısı
-        private int h2_n; // A* heuristic, taşların kendi yerlerine city-block uzaklıkları
         private int h3_n; // A* heuristic, h2 den daha iyi sonuç verecek bizim bulacağımız heuristic değeri
         private int[][] puzzle; // state için int array
 
@@ -288,23 +368,40 @@ public class Main {
         }
 
         //algoritma ve değerle constructor
-        public State(int[][] puzzle, int value, int algorithm) {
+        public State(int[][] puzzle, int value) {
             this.puzzle = puzzle;
-            switch (algorithm) {
-                case UCS:
-                    g_n = value;
-                    break;
-                case H_1:
-                    h1_n = value;
-                    break;
-                case H_2:
-                    h2_n = value;
-                    break;
+            g_n = value;
             }
+
+        public int getH1_n() {
+            int value = 0;
+            for (int i = 0; i < PUZZLE_SIZE; i++) {
+                for (int j = 0; j < PUZZLE_SIZE; j++) {
+                    if(this.puzzle[i][j] != GOAL_STATE[i][j])
+                        value += 1;
+                }
+            }
+            return value;
         }
 
-    }
+        //kendi h2_n değerini hesaplayan fonksiyon
+        public int getH2_n() {
+            int  temp, value = 0;
+            for (int i = 0; i < PUZZLE_SIZE; i++) { // puzzle size büyük olmadığı sürece deep nested for loopta sorun yok
+                for (int j = 0; j < PUZZLE_SIZE; j++) {
+                    temp = GOAL_STATE[i][j];
+                    for (int k = 0; k < PUZZLE_SIZE; k++) {
+                        for (int l = 0; l < PUZZLE_SIZE; l++) {
+                            if(this.puzzle[k][l] == temp)
+                                value += Math.abs(k-i) + Math.abs(l-j);
+                        }
+                    }
+                }
 
+            }
+            return value;
+        }
+    }
 }
 
 
