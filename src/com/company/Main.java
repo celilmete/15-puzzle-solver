@@ -24,8 +24,12 @@ public class Main {
 
     public static void main(String[] args) {
 
-        GraphNode start = puzzleGenerator(6);
+        GraphNode start = puzzleGenerator(50);
         double startTime = System.currentTimeMillis();
+//        expand(start, UCS);
+//        System.out.println(isInExploredSet(start));
+
+
         start = graphSearch(start,H_2);
         double endTime = System.currentTimeMillis();
         System.out.println("Time taken: "+(endTime-startTime)+"ms");
@@ -175,101 +179,49 @@ public class Main {
         // boş taşın yer bulundu artık mümkün olan hereketler için node oluşturuyoruz
         int[][] puzzle = copy(parentPuzzle);
         if (move("u", puzzle)) { // boş taşı yukarı kaydır
-            State state = new State(puzzle, node.state.g_n + 1);
-            GraphNode graphNode = null;
-            switch (algorithm) {
-                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
-                case H_1: break;
-                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
-            }
-            if(!isInExploredSet(graphNode))
-                frontier.add(graphNode);
+            createChildren(node, algorithm, puzzle, 1);
         }
         puzzle = copy(parentPuzzle);
         if (move("d", puzzle)) { // boş taşı aşağı kaydır
-            State state = new State(puzzle, node.state.g_n + 1);
-            GraphNode graphNode = null;
-            switch (algorithm) {
-                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
-                case H_1: break;
-                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
-            }
-            if(!isInExploredSet(graphNode))
-                frontier.add(graphNode);
+            createChildren(node, algorithm, puzzle, 1);
         }
         puzzle = copy(parentPuzzle);
         if (move("r", puzzle)) { // boş taşı sağa kaydır
-            State state = new State(puzzle, node.state.g_n + 1);
-            GraphNode graphNode = null;
-            switch (algorithm) {
-                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
-                case H_1: break;
-                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
-            }
-            if(!isInExploredSet(graphNode))
-                frontier.add(graphNode);
+            createChildren(node, algorithm, puzzle, 1);
         }
         puzzle = copy(parentPuzzle);
         if (move("l", puzzle)) { // boş taşı sola kaydır
-            State state = new State(puzzle, node.state.g_n + 1);
-            GraphNode graphNode = null;
-            switch (algorithm) {
-                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
-                case H_1: break;
-                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
-            }
-            if(!isInExploredSet(graphNode))
-                frontier.add(graphNode);
+            createChildren(node, algorithm, puzzle, 1);
         }
         puzzle = copy(parentPuzzle);
         if (move("ur", puzzle)) { // boş taşı sağ yukarı çapraz kaydır
-            State state = new State(puzzle, node.state.g_n + 3);
-            GraphNode graphNode = null;
-            switch (algorithm) {
-                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
-                case H_1: break;
-                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
-            }
-            if(!isInExploredSet(graphNode))
-                frontier.add(graphNode);
+            createChildren(node, algorithm, puzzle, 3);
         }
         puzzle = copy(parentPuzzle);
         if (move("ul", puzzle)) { // boş taşı sol yukarı çapraz kaydır
-            State state = new State(puzzle, node.state.g_n + 3);
-            GraphNode graphNode = null;
-            switch (algorithm) {
-                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
-                case H_1: break;
-                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
-            }
-            if(!isInExploredSet(graphNode))
-                frontier.add(graphNode);
+            createChildren(node, algorithm, puzzle, 3);
         }
         puzzle = copy(parentPuzzle);
         if (move("dr", puzzle)) { // boş taşı sağ aşağı çapraz kaydır
-            State state = new State(puzzle, node.state.g_n + 3);
-            GraphNode graphNode = null;
-            switch (algorithm) {
-                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
-                case H_1: break;
-                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
-            }
-            if(!isInExploredSet(graphNode))
-                frontier.add(graphNode);
+            createChildren(node, algorithm, puzzle, 3);
         }
         puzzle = copy(parentPuzzle);
         if (move("dl", puzzle)) { // boş taşı sol aşağı çapraz kaydır
-            State state = new State(puzzle, node.state.g_n + 3);
-            GraphNode graphNode = null;
-            switch (algorithm) {
-                case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
-                case H_1: break;
-                case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
-            }
-            if(!isInExploredSet(graphNode))
-                frontier.add(graphNode);
+            createChildren(node, algorithm, puzzle, 3);
         }
 
+    }
+
+    private static void createChildren(GraphNode node, int algorithm, int[][] puzzle, int realCost) {
+        State state = new State(puzzle, node.state.g_n + realCost);
+        GraphNode graphNode = null;
+        switch (algorithm) {
+            case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
+            case H_1: graphNode = new GraphNode(node, state, state.getH1_n());break;
+            case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
+        }
+        if(!isInExploredSet(graphNode))
+            frontier.add(graphNode);
     }
 
     // bu fonksiyon verilen state i yazdıracak
