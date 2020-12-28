@@ -24,22 +24,23 @@ public class Main {
 
     public static void main(String[] args) {
 
-        GraphNode start = puzzleGenerator(50);
+        GraphNode start = puzzleGenerator(8);
         double startTime = System.currentTimeMillis();
 //        expand(start, UCS);
 //        System.out.println(isInExploredSet(start));
 
 
-        start = graphSearch(start,H_2);
+        start = graphSearch(start,UCS);
         double endTime = System.currentTimeMillis();
         System.out.println("Time taken: "+(endTime-startTime)+"ms");
+        System.out.println(exploredSet.size());
 
-        if(start != null) {
-            while (start != null) {
-                printNode(start);
-                start = start.parent;
-            }
-        }
+//        if(start != null) {
+//            while (start != null) {
+//                printNode(start);
+//                start = start.parent;
+//            }
+//        }
         System.out.println("Time taken: "+(endTime-startTime)+"ms");
 
     }
@@ -110,7 +111,6 @@ public class Main {
             if(isEqual(GOAL_STATE,node.state.puzzle))
                 return node;
             else {
-                System.out.println(".");
                 expand(node,algorithm);
             }
         }
@@ -214,13 +214,14 @@ public class Main {
 
     private static void createChildren(GraphNode node, int algorithm, int[][] puzzle, int realCost) {
         State state = new State(puzzle, node.state.g_n + realCost);
-        GraphNode graphNode = null;
-        switch (algorithm) {
-            case UCS: graphNode = new GraphNode(node, state, state.g_n);break;
-            case H_1: graphNode = new GraphNode(node, state, state.getH1_n());break;
-            case H_2: graphNode = new GraphNode(node, state, state.getH2_n());break;
-        }
-        if(!isInExploredSet(graphNode))
+        GraphNode graphNode = switch (algorithm) {
+            case UCS -> new GraphNode(node, state, state.g_n);
+            case H_1 -> new GraphNode(node, state, state.getH1_n());
+            case H_2 -> new GraphNode(node, state, state.getH2_n());
+            case H_3 -> new GraphNode(node, state, state.getH3_n());
+            default -> null;
+        };
+        if(!isInExploredSet(graphNode)) // frontierde yoksa bu state ekle
             frontier.add(graphNode);
     }
 
@@ -341,10 +342,11 @@ public class Main {
             int  temp, value = 0;
             for (int i = 0; i < PUZZLE_SIZE; i++) { // puzzle size büyük olmadığı sürece deep nested for loopta sorun yok
                 for (int j = 0; j < PUZZLE_SIZE; j++) {
-                    temp = GOAL_STATE[i][j];
+                    temp = this.puzzle[i][j];
+                    if (temp == 0) continue; // boş taş için cost hesaplama
                     for (int k = 0; k < PUZZLE_SIZE; k++) {
                         for (int l = 0; l < PUZZLE_SIZE; l++) {
-                            if(this.puzzle[k][l] == temp)
+                            if(GOAL_STATE[k][l] == temp)
                                 value += Math.abs(k-i) + Math.abs(l-j);
                         }
                     }
@@ -352,6 +354,12 @@ public class Main {
 
             }
             return value;
+        }
+
+        public int getH3_n() {
+            // h2_n asla gerçek cost tan büyük olamayacagı için şimdiye kadar ki cost la bi sonraki hamlenin h2_n toplamı asla o
+            //hamlenin gerçek cost değerini geçemez, ve bu iki değerin toplamı gerçek cost değerine daha yakın olacagı için daha iyi sonuç verir,
+            return this.g_n + getH2_n();
         }
     }
 }
