@@ -21,26 +21,35 @@ public class Main {
     //frontier i priority que olarak oluşturdum
     static PriorityQueue<GraphNode> frontier = new PriorityQueue<GraphNode>(Comparator.comparing(GraphNode::getCost)); // explored set i array list
     static ArrayList<GraphNode> exploredSet = new ArrayList<GraphNode>(); //  olarak oluşturdum
+    static ArrayList<int[][]> gen = new ArrayList<int[][]>(); // puzzle oluştururken cycleları önlemek için
 
     public static void main(String[] args) {
 
-        GraphNode start = puzzleGenerator(8);
+        GraphNode start = puzzleGenerator(18);
         double startTime = System.currentTimeMillis();
 //        expand(start, UCS);
 //        System.out.println(isInExploredSet(start));
 
-
-        start = graphSearch(start,UCS);
+//        start.state.puzzle = new int[][]{
+//                {1, 2, 3, 4},
+//                {11, 13, 14, 5},
+//                {10, 0, 15, 6},
+//                {12, 9, 8, 7}
+//        };
+        start = graphSearch(start,H_1);
         double endTime = System.currentTimeMillis();
-        System.out.println("Time taken: "+(endTime-startTime)+"ms");
-        System.out.println(exploredSet.size());
 
-//        if(start != null) {
-//            while (start != null) {
-//                printNode(start);
-//                start = start.parent;
-//            }
-//        }
+        int count = 0;
+        if(start != null) {
+            while (start != null) {
+                printNode(start);
+                start = start.parent;
+                count++;
+            }
+        }
+        System.out.println("Number of expanded nodes: " + exploredSet.size());
+        System.out.println("Number of maximum nodes stored in memory: " + (exploredSet.size() + frontier.size()));
+        System.out.println("Depth of the solution: " + (count - 1));
         System.out.println("Time taken: "+(endTime-startTime)+"ms");
 
     }
@@ -62,42 +71,65 @@ public class Main {
                 continue;
             switch (number) {
                 case 0 -> {
-                    if (move("u", puzzle))
+                    if (move("u", puzzle)) {
+                        last = number;
                         i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                    }
                 }
                 case 1 -> {
-                    if (move("l", puzzle))
+                    if (move("l", puzzle)) {
+                        last = number;
                         i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                    }
                 }
                 case 2 -> {
-                    if (move("ur", puzzle))
+                    if (move("ur", puzzle)) {
+                        last = number;
                         i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                    }
                 }
                 case 3 -> {
-                    if (move("ul", puzzle))
+                    if (move("ul", puzzle))  {
+                        last = number;
                         i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                    }
                 }
                 case 4 -> {
-                    if (move("dr", puzzle))
+                    if (move("dr", puzzle)) {
+                        last = number;
                         i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                    }
                 }
                 case 5 -> {
-                    if (move("dl", puzzle))
+                    if (move("dl", puzzle)) {
+                        last = number;
                         i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                    }
                 }
                 case 6 -> {
-                    if (move("r", puzzle))
+                    if (move("r", puzzle)) {
+                        last = number;
                         i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                    }
                 }
                 case 7 -> {
-                    if (move("d", puzzle))
+                    if (move("d", puzzle)) {
+                        last = number;
                         i++; // eğer taş o yöne hareket edebilmişse i yi arttır
+                    }
                 }
             }
-            last = number;
         }
         State state = new State(puzzle,0);
         return new GraphNode(null,state,state.g_n);
+    }
+
+    public static boolean isCycle(int[][] puzzle) {
+        for (int[][] x:gen) {
+            if (isEqual(x,puzzle))
+                return true;
+        }
+        return false;
     }
 
     // Bütün algoritmalar için kullanacağımız search fonksiyonu
@@ -112,9 +144,32 @@ public class Main {
                 return node;
             else {
                 expand(node,algorithm);
+                System.out.println(".");
             }
         }
         return null;
+    }
+
+    public static GraphNode iSearch(GraphNode startNode) {
+
+        if(isEqual(startNode.state.puzzle,GOAL_STATE))
+            return startNode;
+        expand(startNode,UCS);
+        GraphNode node;
+        int i = 1;
+        int length = 0;
+        while (true) {
+            length ++;
+            while (frontier.peek() != null && i <= length) {
+                node = frontier.poll();
+                if(isEqual(GOAL_STATE,node.state.puzzle))
+                    return node;
+                else {
+                    expand(node,UCS);
+                    System.out.println(".");
+                }
+            }
+        }
     }
 
     // puzlle daki boş taşı hareket ettirmek için fonksiyon , yönleri u,d,r,l,ur,ul,dr,dl olarak verilecek
@@ -359,7 +414,7 @@ public class Main {
         public int getH3_n() {
             // h2_n asla gerçek cost tan büyük olamayacagı için şimdiye kadar ki cost la bi sonraki hamlenin h2_n toplamı asla o
             //hamlenin gerçek cost değerini geçemez, ve bu iki değerin toplamı gerçek cost değerine daha yakın olacagı için daha iyi sonuç verir,
-            return this.g_n + getH2_n();
+            return this.g_n + this.getH2_n();
         }
     }
 }
