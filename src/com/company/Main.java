@@ -25,16 +25,13 @@ public class Main {
 
     public static void main(String[] args) {
 
-        GraphNode start = puzzleGenerator(18);
+        GraphNode start = puzzleGenerator(14);
         double startTime = System.currentTimeMillis();
-//        expand(start, UCS);
-//        System.out.println(isInExploredSet(start));
-
 //        start.state.puzzle = new int[][]{
-//                {1, 2, 3, 4},
-//                {11, 13, 14, 5},
-//                {10, 0, 15, 6},
-//                {12, 9, 8, 7}
+//                {1, 2, 3, 5},
+//                {12, 14, 4, 6},
+//                {0, 10, 15, 8},
+//                {9, 11, 13, 7}
 //        };
         start = graphSearch(start,H_1);
         double endTime = System.currentTimeMillis();
@@ -122,14 +119,6 @@ public class Main {
         }
         State state = new State(puzzle,0);
         return new GraphNode(null,state,state.g_n);
-    }
-
-    public static boolean isCycle(int[][] puzzle) {
-        for (int[][] x:gen) {
-            if (isEqual(x,puzzle))
-                return true;
-        }
-        return false;
     }
 
     // Bütün algoritmalar için kullanacağımız search fonksiyonu
@@ -271,9 +260,9 @@ public class Main {
         State state = new State(puzzle, node.state.g_n + realCost);
         GraphNode graphNode = switch (algorithm) {
             case UCS -> new GraphNode(node, state, state.g_n);
-            case H_1 -> new GraphNode(node, state, state.getH1_n());
-            case H_2 -> new GraphNode(node, state, state.getH2_n());
-            case H_3 -> new GraphNode(node, state, state.getH3_n());
+            case H_1 -> new GraphNode(node, state, state.g_n + state.getH1_n());
+            case H_2 -> new GraphNode(node, state, state.g_n + state.getH2_n());
+            case H_3 -> new GraphNode(node, state, state.g_n + state.getH3_n());
             default -> null;
         };
         if(!isInExploredSet(graphNode)) // frontierde yoksa bu state ekle
