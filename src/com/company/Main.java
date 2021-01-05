@@ -25,24 +25,35 @@ public class Main {
 
     public static void main(String[] args) {
 
-        GraphNode start = puzzleGenerator(14);
+        GraphNode start = puzzleGenerator(20);
         double startTime = System.currentTimeMillis();
-//        start.state.puzzle = new int[][]{
-//                {1, 2, 3, 5},
-//                {12, 14, 4, 6},
-//                {0, 10, 15, 8},
-//                {9, 11, 13, 7}
+//        start.state.puzzle = new int[][]{ // a
+//                {0, 1, 3, 4},
+//                {12, 13, 2, 5},
+//                {11, 14, 15, 6},
+//                {10, 9, 8, 7}
 //        };
-        start = graphSearch(start,H_1);
+//        start.state.puzzle = new int[][]{  // b
+//                {1, 3, 5, 4},
+//                {2, 13, 14, 15},
+//                {11, 12, 9, 6},
+//                {0, 10, 8, 7}
+//        };
+//                start.state.puzzle = new int[][]{  // c
+//                {1, 13, 3, 4},
+//                {12, 11, 2, 5},
+//                {9, 8, 15, 7},
+//                {10, 6, 14, 0}
+//        };
+        start = graphSearch(start, H_2);
+//        start = iSearch(start);
         double endTime = System.currentTimeMillis();
 
         int count = 0;
-        if(start != null) {
-            while (start != null) {
-                printNode(start);
-                start = start.parent;
-                count++;
-            }
+        while (start != null) {
+            printNode(start);
+            start = start.parent;
+            count++;
         }
         System.out.println("Number of expanded nodes: " + exploredSet.size());
         System.out.println("Number of maximum nodes stored in memory: " + (exploredSet.size() + frontier.size()));
@@ -140,16 +151,19 @@ public class Main {
     }
 
     public static GraphNode iSearch(GraphNode startNode) {
-
-        if(isEqual(startNode.state.puzzle,GOAL_STATE))
-            return startNode;
-        expand(startNode,UCS);
         GraphNode node;
         int i = 1;
         int length = 0;
         while (true) {
             length ++;
-            while (frontier.peek() != null && i <= length) {
+            frontier.clear();
+            exploredSet.clear();
+            if(isEqual(startNode.state.puzzle,GOAL_STATE)) {
+                return startNode;
+            }
+            expand(startNode,UCS);
+            i = 1;
+            while (frontier.peek() != null && frontier.peek().cost <= length) {
                 node = frontier.poll();
                 if(isEqual(GOAL_STATE,node.state.puzzle))
                     return node;
@@ -157,6 +171,7 @@ public class Main {
                     expand(node,UCS);
                     System.out.println(".");
                 }
+                i++;
             }
         }
     }
@@ -200,7 +215,7 @@ public class Main {
             puzzle[blank_tile_x][blank_tile_y] = puzzle[blank_tile_x + 1][blank_tile_y - 1];
             puzzle[blank_tile_x + 1][blank_tile_y - 1] = 0;
         } else
-            return false;//System.err.println("can not move tile that direction"); // boş taş hareket edemiyorsa hata yazdır
+            return false;// boş taş hareket edemiyorsa hata yazdır
         return true;
     }
 
@@ -324,7 +339,7 @@ public class Main {
     }
 
     // bu graph implement etmek için node
-    public static class GraphNode implements Comparable { // implementasyonu bitmedi
+    public static class GraphNode implements Comparable {
 
         GraphNode parent; // her node kendi parent ını tutacak
         int cost; // node un cost u, algoritmaya göre belirlenecek
@@ -401,9 +416,22 @@ public class Main {
         }
 
         public int getH3_n() {
-            // h2_n asla gerçek cost tan büyük olamayacagı için şimdiye kadar ki cost la bi sonraki hamlenin h2_n toplamı asla o
-            //hamlenin gerçek cost değerini geçemez, ve bu iki değerin toplamı gerçek cost değerine daha yakın olacagı için daha iyi sonuç verir,
-            return this.g_n + this.getH2_n();
+            int  temp, value = 0;
+            for (int i = 0; i < PUZZLE_SIZE; i++) { // puzzle size büyük olmadığı sürece deep nested for loopta sorun yok
+                for (int j = 0; j < PUZZLE_SIZE; j++) {
+                    temp = this.puzzle[i][j];
+                    if (temp == 0) continue; // boş taş için cost hesaplama
+                    for (int k = 0; k < PUZZLE_SIZE; k++) {
+                        for (int l = 0; l < PUZZLE_SIZE; l++) {
+                            if(GOAL_STATE[k][l] == temp)
+                                value += Math.sqrt((k-i)*(k-i) + (l-j)*(l-j));
+                        }
+                    }
+                }
+
+            }
+            value = value + 1;
+            return value;
         }
     }
 }
